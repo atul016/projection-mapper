@@ -1,10 +1,16 @@
 # Projection Mapper
 
-Turn a projector and a browser into a projection-mapping rig. Drag zones onto the real
-surfaces in a room (paintings, pillars, boxes, a window) and fill each one with a glowing
-effect, a video, a Lottie animation or a YouTube clip.
+**Free, open-source projection mapping software that runs in your browser.** Works with any
+projector: plug it into a Mac, Windows or Linux laptop, drag zones onto the real surfaces in a
+room (paintings, pillars, boxes, a window) and fill each one with a glowing effect, a video, a
+Lottie animation or a YouTube clip.
 
-No install, no build step, no account: it's a web page.
+No install, no build step, no account: it's a web page. **[Try it in your browser](https://atul016.github.io/projection-mapper/)**,
+or download it to use offline.
+
+Made for home projection mapping: Diwali and Halloween decorations, parties, wall art,
+shop windows and small stages. A simple, free alternative to paid projection mapping tools
+like MadMapper or Resolume Arena when all you need is a few warped zones on a wall.
 
 ![Diyas, an edge trace, an anar fountain, fireworks and a glitter shower, each in its own zone](docs/screenshot.jpg)
 
