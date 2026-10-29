@@ -1,0 +1,4 @@
+.DS_Store
+.claude/
+# exported setups from testing
+mapper-setup*.json

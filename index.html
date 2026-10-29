@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projection Mapper</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<div id="grid"></div>
+
+<div id="panel">
+  <table>
+    <thead><tr><td>Zone</td><td>Effect</td><td>Colour</td><td>Video, Lottie .json or YouTube link (overrides effect)</td><td></td></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="actions">
+    <button id="add">+ Add zone</button>
+    <button id="export">Export setup</button>
+    <button id="import-btn">Import setup</button><input id="import" type="file" accept=".json" hidden>
+  </div>
+</div>
+
+<div id="help">
+  <b>Projection Mapper</b><br>
+  <kbd>Shift</kbd>+<kbd>Space</kbd> edit mode: drag a zone, or its corners, onto a surface<br>
+  &nbsp;&nbsp;in edit mode: <kbd>Shift</kbd>+drag = fine, <kbd>Alt</kbd>+drag = rotate/scale, <kbd>R</kbd> rotate 90°, <kbd>]</kbd> / <kbd>[</kbd> bring forward / send back, <kbd>s</kbd> solo zone, <kbd>x</kbd> switch zone off/on<br>
+  &nbsp;&nbsp;<kbd>N</kbd> new zone, <kbd>⌘/Ctrl</kbd>+<kbd>C</kbd> / <kbd>V</kbd> copy / paste selected zone, <kbd>Delete</kbd> remove selected zone<br>
+  <kbd>P</kbd> panel: effect, colour, video / Lottie / YouTube per zone, export / import setup<br>
+  <kbd>G</kbd> full-screen alignment grid (<kbd>R</kbd> / <kbd>Shift</kbd>+<kbd>R</kbd> rotate it) &nbsp; <kbd>F</kbd> fullscreen &nbsp; <kbd>H</kbd> hide this help<br>
+  Everything except video / Lottie files is remembered in this browser.
+</div>
+
+<script src="vendor/maptastic.js"></script>
+<script src="vendor/lottie_light.min.js"></script>
+<script src="src/lib.js"></script>
+<script src="src/effects.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>
