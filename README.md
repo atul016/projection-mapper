@@ -12,7 +12,10 @@ Made for home projection mapping: Diwali and Halloween decorations, parties, wal
 shop windows and small stages. A simple, free alternative to paid projection mapping tools
 like MadMapper or Resolume Arena when all you need is a few warped zones on a wall.
 
-![Diyas, an edge trace, an anar fountain, fireworks and a glitter shower, each in its own zone](docs/screenshot.jpg)
+![A painting on a real wall comes alive with a projected ghost clip, while projected bats fly past and a row of jack-o'-lanterns glows underneath](docs/demo.gif)
+
+<sub>A real wall and projector. Pumpkins and bats are built-in effects; the clip on the painting is
+"5 HOURS Zombie Live 4K Wallpaper" by GODSPEED on YouTube, played through a YouTube zone.</sub>
 
 ## Features
 
