@@ -1,5 +1,5 @@
 // Projection Mapper: zones, the panel, keyboard shortcuts and the render loop.
-// Depends on vendor/maptastic.js, vendor/lottie_light.min.js, lib.js and effects/ (loaded first).
+// Depends on vendor/maptastic.js, vendor/lottie_light.min.js, lib.js, effects/ and shapes.js (loaded first).
 
 const DEFAULTS = [['grid', '#ffffff'], ['trace', '#40e0ff'], ['diya', '#ffb347'], ['anar', '#ffd84d'], ['fireworks', '#ff6ad5'], ['off', '#ffffff']];
 const ZONES_KEY = 'mapper.zones';
@@ -14,7 +14,7 @@ if (!saved.length) saved = DEFAULTS.map(([effect, color]) => ({ effect, color })
 
 const zoneSpec = z => ({
   id: z.el.id, effect: z.effect, color: z.color, url: z.url || undefined, off: z.off || undefined,
-  points: z.layer.targetPoints, sourcePoints: z.layer.sourcePoints,
+  points: z.layer.targetPoints, sourcePoints: z.layer.sourcePoints, shape: z.shape,
 });
 let ready = false; // nothing is saved while startup rebuilds the zones
 function save() {
@@ -34,7 +34,7 @@ const num = z => z.el.id.slice(4);
 let nextNum = 1 + Math.max(0, ...saved.map(s => +(s.id || 'zone0').slice(4)));
 
 // a zone from a saved spec; without points it goes in the middle of the screen
-function addZone({ id, effect = 'grid', color = '#ffffff', url, off, points, sourcePoints } = {}) {
+function addZone({ id, effect = 'grid', color = '#ffffff', url, off, points, sourcePoints, shape } = {}) {
   id ||= 'zone' + nextNum++;
   const el = document.createElement('div');
   el.className = 'zone'; el.id = id;
@@ -42,9 +42,10 @@ function addZone({ id, effect = 'grid', color = '#ffffff', url, off, points, sou
   document.body.appendChild(el);
   const z = el.zone = {
     el, ctx: el.querySelector('canvas').getContext('2d'), video: el.querySelector('video'), img: el.querySelector('img'),
-    lottieEl: el.querySelector('.lottie'), anim: null, effect, color, state: { p: [] },
+    lottieEl: el.querySelector('.lottie'), anim: null, effect, color, state: { p: [] }, shape,
   };
   setMode(z, 'effect');
+  applyShape(z);
   map.addLayer(el, points || rect(vw() * 0.35, vh() * 0.3, vw() * 0.3, vh() * 0.4));
   z.layer = map.layers.at(-1);
   if (sourcePoints) { z.layer.sourcePoints = sourcePoints.map(p => p.slice()); map.updateTransform(); }
@@ -66,6 +67,13 @@ async function removeZone(z) {
   save();
 }
 
+// cut the zone to its traced outlines. The zone is always 800x600 before maptastic warps it, so the
+// clip warps with it; effects get the outlines in those pixels too (trace runs round them).
+function applyShape(z) {
+  z.el.style.clipPath = z.shape ? `path(evenodd, "${shapePath(z.shape, 800, 600)}")` : '';
+  z.shapePx = z.shape?.map(o => o.map(([x, y]) => [x * 800, y * 600]));
+}
+
 // turn a zone a quarter turn clockwise about its centre (what maptastic's R key does)
 function rotateZone(z) {
   const p = z.layer.targetPoints, cx = p.reduce((a, q) => a + q[0], 0) / 4, cy = p.reduce((a, q) => a + q[1], 0) / 4;
@@ -80,7 +88,7 @@ function addTools(z) {
   z.tools.className = 'zone-tools';
   z.tools.dataset.zone = z.el.id;
   z.tools.innerHTML = `<select data-f="effect" title="Effect">${effectOptions()}</select><input data-f="color" type="color" title="Colour">
-    <button data-act="media" title="Video, GIF, image, Lottie or a link">📎</button><span class="sep"></span>
+    <button data-act="media" title="Video, GIF, image, Lottie or a link">📎</button><button data-act="shape" title="Trace a shape (T)">✂</button><span class="sep"></span>
     <button data-act="rotate" title="Rotate 90° (R)">⟳</button><button data-act="off" title="Switch off / on (X)">◐</button>
     <button data-act="dup" title="Duplicate (⌘/Ctrl+C, V)">⧉</button><button data-act="up" title="Bring forward (])">▲</button>
     <button data-act="down" title="Send back ([)">▼</button><button data-act="del" title="Delete (Delete)">✕</button>
@@ -89,6 +97,7 @@ function addTools(z) {
   z.tools.onclick = e => {
     switch (e.target.dataset.act) {
       case 'media': { const m = z.tools.querySelector('.media'); m.hidden = !m.hidden; break; }
+      case 'shape': startTrace(z); break;
       case 'rotate': rotateZone(z); break;
       case 'off': setOff(z, !z.off); save(); break;
       case 'dup': duplicate(zoneSpec(z)); break;
@@ -105,13 +114,14 @@ function addTools(z) {
 // in edit mode, keep the selected zone's bar under its label (maptastic draws the label at the zone's centre)
 function placeTools() {
   for (const z of zones()) {
-    const show = map.configActive && z.layer.visible && map.selectedLayer === z.layer;
+    const show = map.configActive && !tracer && z.layer.visible && map.selectedLayer === z.layer;
     z.tools.style.display = show ? 'flex' : 'none';
     if (!show) continue;
     const p = z.layer.targetPoints;
     z.tools.style.left = p.reduce((a, q) => a + q[0], 0) / 4 + 'px';
     z.tools.style.top = p.reduce((a, q) => a + q[1], 0) / 4 + 14 + 'px';
     z.tools.querySelector('[data-act=off]').classList.toggle('on', !!z.off); // dimmed while the zone is off
+    z.tools.querySelector('[data-act=shape]').classList.toggle('lit', !!z.shape);
   }
 }
 
@@ -265,9 +275,10 @@ function addRow(z) {
     <td><select data-f="effect">${effectOptions()}</select></td>
     <td><input data-f="color" type="color"></td>
     <td>${mediaInputs}</td>
-    <td><button data-act="dup" title="Duplicate">⧉</button> <button data-act="del" title="Delete">✕</button></td>`;
+    <td><button data-act="shape" title="Trace a shape">✂</button> <button data-act="dup" title="Duplicate">⧉</button> <button data-act="del" title="Delete">✕</button></td>`;
   tr.cells[0].textContent = num(z);
   bindControls(z, tr);
+  tr.querySelector('[data-act=shape]').onclick = () => { if (!map.configActive) ACTIONS.edit.run(); panel.style.display = 'none'; startTrace(z); };
   tr.querySelector('[data-act=dup]').onclick = () => duplicate(zoneSpec(z));
   tr.querySelector('[data-act=del]').onclick = () => removeZone(z);
   rows.appendChild(tr);
@@ -419,6 +430,7 @@ function editKey(e, k) {
   if (!z) return;
   switch (k) {
     case 'x': setOff(z, !z.off); save(); break;
+    case 't': startTrace(z); break;
     case ']': restack(z, 1); break;
     case '[': restack(z, -1); break;
     case 'delete': case 'backspace': if (e.target.tagName !== 'BUTTON') removeZone(z); break; // not a stray key on a panel button
@@ -430,9 +442,10 @@ function editKey(e, k) {
   const t = ms / 1000;
   for (const z of zones()) if (z.mode === 'effect' && !z.off) {
     z.ctx.save(); // whatever an effect changes on the canvas is undone after its frame
-    EFFECTS[z.effect](z.ctx, 800, 600, t, z.state, z.color, num(z));
+    EFFECTS[z.effect](z.ctx, 800, 600, t, z.state, z.color, num(z), z.shapePx);
     z.ctx.restore();
   }
+  if (tracer && !map.configActive) endTrace(true); // edit mode switched off from the dock
   placeTools();
   dock.querySelector('[data-act=edit]').classList.toggle('on', map.configActive);
   requestAnimationFrame(frame);

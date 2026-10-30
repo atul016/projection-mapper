@@ -1,12 +1,14 @@
 // Built-in effects: shared helpers and the EFFECTS table. Each effect lives in its own file in this
 // folder and adds itself here; index.html loads them after this file. An effect draws one frame:
 //
-//   name(c, w, h, t, s, color, label)
+//   name(c, w, h, t, s, color, label, shape)
 //     c      CanvasRenderingContext2D (always 800x600: w, h)
 //     t      time in seconds
 //     s      per-zone state, starts as { p: [] } and resets when the effect changes
 //     color  the zone's colour from the panel, e.g. '#ffb347'
 //     label  the zone's number, for effects that print it
+//     shape  the zone's traced outlines in canvas pixels ([[[x, y], ...], ...]), or undefined for the
+//            plain rectangle. The zone is already cut to them; effects can follow them (see trace)
 //
 // Add a file here (and its <script> tag in index.html) and it appears in the panel's Effect dropdown. Draw bright things on black:
 // black is "no light" on a projector, so only what you draw shows up on the wall.

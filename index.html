@@ -24,6 +24,13 @@
 </div>
 
 <dialog id="ask"><p></p><div class="buttons"><button value="cancel">Cancel</button><button value="ok" autofocus>OK</button></div></dialog>
+<canvas id="trace"></canvas>
+<div id="trace-bar">
+  <b></b>: drag round the outline on the wall, or click point by point. Click the first point (or <kbd>Enter</kbd>) to close it.
+  Draw another outline inside it to cut a hole. Drag a blue point to adjust it.
+  <div class="buttons"><button data-act="oval">◯ Oval</button><button data-act="undo" title="Backspace">⌫ Undo</button><button data-act="clear">Clear (rectangle)</button>
+  <span class="sep"></span><button data-act="cancel" title="Esc">Cancel</button><button data-act="done" title="Enter">Done</button></div>
+</div>
 <div id="dock"></div>
 <div id="menu"></div>
 
@@ -31,8 +38,8 @@
   <button class="close" title="Close (H)">×</button>
   <b>Projection Mapper</b><br>
   <kbd>Shift</kbd>+<kbd>Space</kbd> edit mode: drag a zone, or its corners, onto a surface<br>
-  &nbsp;&nbsp;in edit mode: <kbd>Shift</kbd>+drag = fine, <kbd>Alt</kbd>+drag = rotate/scale, <kbd>R</kbd> rotate 90°, <kbd>]</kbd> / <kbd>[</kbd> bring forward / send back, <kbd>s</kbd> solo zone, <kbd>x</kbd> switch zone off/on<br>
-  &nbsp;&nbsp;or click a zone for its bar: effect, colour, 📎 video / GIF / link, ⟳ rotate 90°, ◐ off/on, ⧉ duplicate, ▲ / ▼ forward / back, ✕ delete<br>
+  &nbsp;&nbsp;in edit mode: <kbd>Shift</kbd>+drag = fine, <kbd>Alt</kbd>+drag = rotate/scale, <kbd>R</kbd> rotate 90°, <kbd>]</kbd> / <kbd>[</kbd> bring forward / send back, <kbd>s</kbd> solo zone, <kbd>x</kbd> switch zone off/on, <kbd>t</kbd> trace a shape (a flower, a window…)<br>
+  &nbsp;&nbsp;or click a zone for its bar: effect, colour, 📎 video / GIF / link, ✂ trace a shape, ⟳ rotate 90°, ◐ off/on, ⧉ duplicate, ▲ / ▼ forward / back, ✕ delete<br>
   &nbsp;&nbsp;<kbd>N</kbd> new zone, <kbd>⌘/Ctrl</kbd>+<kbd>C</kbd> / <kbd>V</kbd> copy / paste selected zone, <kbd>Delete</kbd> remove selected zone<br>
   <kbd>P</kbd> panel: effect, colour, video / GIF / Lottie / YouTube per zone, export / import setup<br>
   <kbd>G</kbd> full-screen alignment grid (<kbd>R</kbd> / <kbd>Shift</kbd>+<kbd>R</kbd> rotate it) &nbsp; <kbd>F</kbd> fullscreen &nbsp; <kbd>H</kbd> hide this help<br>
@@ -59,6 +66,7 @@
 <script src="src/effects/snow.js"></script>
 <script src="src/effects/tree.js"></script>
 <script src="src/effects/lights.js"></script>
+<script src="src/shapes.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

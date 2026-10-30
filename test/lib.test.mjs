@@ -7,7 +7,8 @@ import vm from 'node:vm';
 
 const ctx = vm.createContext({ URL }); // the browser globals lib.js uses
 vm.runInContext(readFileSync(new URL('../src/lib.js', import.meta.url), 'utf8'), ctx);
-const { ytId, cleanZones, mergeLayout, linkKind } = vm.runInContext('({ ytId, cleanZones, mergeLayout, linkKind })', ctx);
+const { ytId, cleanZones, mergeLayout, linkKind, cleanShape, shapePath, homography, project, simplify, oval } =
+  vm.runInContext('({ ytId, cleanZones, mergeLayout, linkKind, cleanShape, shapePath, homography, project, simplify, oval })', ctx);
 
 test('ytId reads every common YouTube link shape', () => {
   const id = 'aqz-KE-bpKQ';
@@ -93,4 +94,38 @@ test('linkKind sorts links into YouTube, image, video, or not usable', () => {
     'not a link': undefined,
   };
   for (const [url, kind] of Object.entries(cases)) assert.equal(linkKind(url), kind, url);
+});
+
+test('cleanShape keeps outlines of 3+ finite points, clamped and rounded', () => {
+  const tri = [[0.1, 0.1], [0.9, 0.1], [0.5, 0.9]];
+  assert.deepEqual(JSON.parse(JSON.stringify(cleanShape([tri, [[0, 0], [1, 1]], [[0, 0], [1, 'x'], [0, 1]], 'nope', [[-2, 0.123456], [3, 0], [0.5, 1]]]))),
+    [tri, [[0, 0.1235], [1, 0], [0.5, 1]]]);
+  for (const bad of [undefined, [], 'x', [[[0, 0], [1, 1]]]]) assert.equal(cleanShape(bad), undefined);
+  assert.equal(cleanShape(Array(80).fill(tri)).length, 50, 'capped');
+  const [z] = cleanZones([{ shape: [tri] }], {});
+  assert.deepEqual(JSON.parse(JSON.stringify(z.shape)), [tri]);
+});
+
+test('shapePath scales outlines into an SVG path', () => {
+  assert.equal(shapePath([[[0, 0], [1, 0], [0.5, 0.5]], [[0.25, 0.25], [0.5, 0.25], [0.5, 0.5]]], 800, 600),
+    'M0 0L800 0L400 300ZM200 150L400 150L400 300Z');
+  assert.equal(shapePath(undefined, 800, 600), '');
+});
+
+test('homography maps the corners and is undone by the reverse one', () => {
+  const src = [[0, 0], [800, 0], [800, 600], [0, 600]], dst = [[100, 50], [700, 120], [650, 500], [80, 430]];
+  const m = homography(src, dst), back = homography(dst, src);
+  src.forEach((p, i) => dst[i].forEach((v, k) => assert.ok(Math.abs(project(m, p)[k] - v) < 1e-6)));
+  const p = project(back, project(m, [321, 123]));
+  assert.ok(Math.abs(p[0] - 321) < 1e-6 && Math.abs(p[1] - 123) < 1e-6, String(p));
+  assert.equal(homography(src, [[0, 0], [0, 0], [0, 0], [0, 0]]), undefined, 'degenerate');
+});
+
+test('simplify drops points along straight runs and keeps corners', () => {
+  const line = [];
+  for (let x = 0; x <= 100; x += 5) line.push([x, x % 10 ? 0.5 : 0]); // a slightly wobbly line
+  for (let y = 5; y <= 100; y += 5) line.push([100, y]);
+  assert.deepEqual(JSON.parse(JSON.stringify(simplify(line, 1))), [[0, 0], [100, 0], [100, 100]]);
+  assert.equal(oval(4).length, 1);
+  assert.equal(oval()[0].length, 48);
 });
