@@ -5,9 +5,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
-const ctx = vm.createContext({});
+const ctx = vm.createContext({ URL }); // the browser globals lib.js uses
 vm.runInContext(readFileSync(new URL('../src/lib.js', import.meta.url), 'utf8'), ctx);
-const { ytId, cleanZones, mergeLayout } = vm.runInContext('({ ytId, cleanZones, mergeLayout })', ctx);
+const { ytId, cleanZones, mergeLayout, linkKind } = vm.runInContext('({ ytId, cleanZones, mergeLayout, linkKind })', ctx);
 
 test('ytId reads every common YouTube link shape', () => {
   const id = 'aqz-KE-bpKQ';
@@ -32,14 +32,14 @@ test('ytId rejects things that are not video links', () => {
 test('cleanZones keeps good zones and neutralises hostile ones', () => {
   const effects = { grid() {}, diya() {} };
   const out = cleanZones([
-    { id: 'zone3', effect: 'diya', color: '#FFB347', yt: 'https://youtu.be/x', off: true },
+    { id: 'zone3', effect: 'diya', color: '#FFB347', yt: 'https://youtu.be/x', off: true }, // old name for url
     { id: 'zone3', effect: 'diya' },                        // duplicate id
     { id: 'zone9007199254740993' },                         // too long: new ids would stop counting up
     { id: '<img onerror=alert(1)>', effect: 'constructor', color: 'red;background:url(x)', yt: 5, off: 'yes' },
     null, 'zone1',
   ], effects).map(z => JSON.parse(JSON.stringify(z)));     // drop undefined fields
   assert.deepEqual(out, [
-    { id: 'zone3', effect: 'diya', color: '#FFB347', yt: 'https://youtu.be/x', off: true },
+    { id: 'zone3', effect: 'diya', color: '#FFB347', url: 'https://youtu.be/x', off: true },
     { effect: 'diya', color: '#ffffff' },
     { effect: 'grid', color: '#ffffff' },
     { effect: 'grid', color: '#ffffff' },
@@ -75,4 +75,22 @@ test('mergeLayout moves version 1 corner positions into the zones', () => {
   ]);
   const list = [{ id: 'zone1' }];
   assert.equal(mergeLayout(list, undefined), list, 'no layout: unchanged');
+});
+
+test('linkKind sorts links into YouTube, image, video, or not usable', () => {
+  const cases = {
+    'https://youtu.be/aqz-KE-bpKQ': 'youtube',
+    'https://media.giphy.com/media/abc/giphy.gif': 'image',
+    'https://example.com/a/photo.JPG?w=800': 'image',
+    'http://example.com/clip.mp4': 'video',
+    'https://example.com/clip.webm#t=3': 'video',
+    'https://giphy.com/gifs/halloween-abc': undefined,   // a web page, not the GIF itself
+    'https://i.imgur.com/abc.gifv': undefined,           // also a page
+    'javascript:alert(1)//x.gif': undefined,
+    'data:image/gif;base64,R0lGOD': undefined,
+    'ftp://example.com/a.mp4': undefined,
+    'https://[bad': undefined,
+    'not a link': undefined,
+  };
+  for (const [url, kind] of Object.entries(cases)) assert.equal(linkKind(url), kind, url);
 });

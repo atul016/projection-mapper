@@ -10,25 +10,25 @@ step and no dependencies to install. Please keep it that way, so anyone can down
 |---|---|
 | `index.html` | Page markup: the panel and the help box |
 | `src/app.js` | Zones, the panel, keyboard shortcuts, export / import, the render loop |
-| `src/effects.js` | The built-in effects. **Most contributions go here.** |
-| `src/lib.js` | Small pure helpers (YouTube link parsing, checking saved zones), covered by tests |
+| `src/effects/` | The built-in effects, one file each, plus `core.js` with the shared helpers. **Most contributions go here.** |
+| `src/lib.js` | Small pure helpers (link parsing for YouTube and direct video / image links, checking saved zones), covered by tests |
 | `src/style.css` | Styles |
 | `vendor/` | Bundled third-party libraries (maptastic, lottie-web). maptastic carries a few small patches, listed at the top of the file; add any new one to that list |
 | `CONTENT.md` | Free animations and videos that project well |
 
 ## Adding an effect
 
-Add a function to the `EFFECTS` object in `src/effects.js`. It's called once per frame:
+Create `src/effects/ring.js` and add `<script src="src/effects/ring.js"></script>` to `index.html` after the other effects. The function is called once per frame:
 
 ```js
 // a ring that breathes in and out
-ring(c, w, h, t, s, col) {
+EFFECTS.ring = (c, w, h, t, s, col) => {
   clear(c, w, h);                                   // start each frame from black
   const r = Math.min(w, h) * (0.3 + 0.05 * Math.sin(t * 3));
   c.strokeStyle = col; c.lineWidth = 12; c.shadowColor = col; c.shadowBlur = 30;
   c.beginPath(); c.arc(w / 2, h / 2, r, 0, 7); c.stroke();
   c.shadowBlur = 0;                                 // leave the canvas as you found it
-},
+};
 ```
 
 - `c` is a 2D canvas context, always 800×600 (`w`, `h`); the zone is warped onto the wall afterwards.
@@ -41,7 +41,7 @@ ring(c, w, h, t, s, col) {
 - Reset anything you change on the context (`shadowBlur`, `globalAlpha`, `globalCompositeOperation`).
 - Keep it fast: several zones run at 60 fps at once.
 
-The new name appears in the panel's dropdown automatically.
+The new name appears in the panel's dropdown, in the order the script tags are listed.
 
 ## Testing
 

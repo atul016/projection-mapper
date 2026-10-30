@@ -6,6 +6,18 @@ const rect = (x, y, w, h) => [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
 // YouTube video id from watch?v=, youtu.be/, /shorts/, /embed/ and /live/ links
 const ytId = url => (String(url).match(/(?:^|[/.])(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:\S*[?&]v=|shorts\/|embed\/|live\/))([\w-]{11})/) || [])[1];
 
+// What a link typed into the panel points at: 'youtube', 'image' (incl. GIF), 'video', or undefined.
+// Only http(s) links count (never javascript: or data:), and a direct link has to end in a media file
+// extension, so a web page (a GIPHY or Tenor page, say) is turned down instead of showing nothing.
+function linkKind(url) {
+  if (ytId(url)) return 'youtube';
+  let u;
+  try { u = new URL(url); } catch { return; }
+  if (!/^https?:$/.test(u.protocol)) return;
+  if (/\.(gif|png|jpe?g|webp|avif|svg)$/i.test(u.pathname)) return 'image';
+  if (/\.(mp4|webm|mov|m4v|ogv)$/i.test(u.pathname)) return 'video';
+}
+
 // Before setup version 2, corner positions were kept apart from the zones, in maptastic's own
 // [{ id, targetPoints, sourcePoints }] layout list. Copy them into the matching zones.
 function mergeLayout(list, layout) {
@@ -26,11 +38,12 @@ function cleanZones(list, effects) {
   const seen = new Set();
   return (Array.isArray(list) ? list : []).filter(s => s && typeof s === 'object').map((s, i) => {
     const id = s.id ?? 'zone' + (i + 1); // saves from the first version had no ids
+    const url = s.url ?? s.yt;            // saves before links could be videos or GIFs called it yt
     return {
       id: /^zone\d{1,6}$/.test(id) && !seen.has(id) && seen.add(id) ? id : undefined, // short, so new ids can't overflow
       effect: Object.hasOwn(effects, s.effect) ? s.effect : 'grid',
       color: /^#[0-9a-f]{6}$/i.test(s.color) ? s.color : '#ffffff',
-      yt: typeof s.yt === 'string' ? s.yt : undefined,
+      url: typeof url === 'string' ? url : undefined, // a YouTube / video / image link
       off: s.off === true || undefined,
       points: quad(s.points),             // where the zone's corners sit on the wall
       sourcePoints: quad(s.sourcePoints), // which content corner goes to each (changed by flips)

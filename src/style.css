@@ -2,8 +2,9 @@ html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font: 
 
 /* each zone renders at 800x600 and maptastic warps it onto the wall */
 .zone { width: 800px; height: 600px; background: #000; overflow: hidden; }
-.zone canvas, .zone video, .zone .lottie { width: 100%; height: 100%; display: block; object-fit: cover; }
-.zone video, .zone .lottie { display: none; }
+.zone canvas, .zone video, .zone img, .zone .lottie { width: 100%; height: 100%; display: none; object-fit: cover; }
+/* app.js sets data-mode to what the zone shows */
+.zone[data-mode=effect] canvas, .zone[data-mode=video] video, .zone[data-mode=image] img, .zone[data-mode=lottie] .lottie { display: block; }
 /* taller than the zone so YouTube's title bar (top) and logo strip (bottom) get cropped by the zone's overflow:hidden */
 .zone iframe { position: absolute; left: 0; top: -80px; width: 100%; height: calc(100% + 160px); border: 0; pointer-events: none; }
 

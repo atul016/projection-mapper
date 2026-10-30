@@ -12,7 +12,7 @@
 
 <div id="panel">
   <table>
-    <thead><tr><td>Zone</td><td>Effect</td><td>Colour</td><td>Video, Lottie .json or YouTube link (overrides effect)</td><td></td></tr></thead>
+    <thead><tr><td>Zone</td><td>Effect</td><td>Colour</td><td>Video, GIF / image or Lottie .json file, or a YouTube / video / GIF link (overrides effect)</td><td></td></tr></thead>
     <tbody id="rows"></tbody>
   </table>
   <div class="actions">
@@ -27,15 +27,30 @@
   <kbd>Shift</kbd>+<kbd>Space</kbd> edit mode: drag a zone, or its corners, onto a surface<br>
   &nbsp;&nbsp;in edit mode: <kbd>Shift</kbd>+drag = fine, <kbd>Alt</kbd>+drag = rotate/scale, <kbd>R</kbd> rotate 90°, <kbd>]</kbd> / <kbd>[</kbd> bring forward / send back, <kbd>s</kbd> solo zone, <kbd>x</kbd> switch zone off/on<br>
   &nbsp;&nbsp;<kbd>N</kbd> new zone, <kbd>⌘/Ctrl</kbd>+<kbd>C</kbd> / <kbd>V</kbd> copy / paste selected zone, <kbd>Delete</kbd> remove selected zone<br>
-  <kbd>P</kbd> panel: effect, colour, video / Lottie / YouTube per zone, export / import setup<br>
+  <kbd>P</kbd> panel: effect, colour, video / GIF / Lottie / YouTube per zone, export / import setup<br>
   <kbd>G</kbd> full-screen alignment grid (<kbd>R</kbd> / <kbd>Shift</kbd>+<kbd>R</kbd> rotate it) &nbsp; <kbd>F</kbd> fullscreen &nbsp; <kbd>H</kbd> hide this help<br>
-  Everything except video / Lottie files is remembered in this browser.
+  Everything is remembered in this browser except chosen files (links are remembered).
 </div>
 
 <script src="vendor/maptastic.js"></script>
 <script src="vendor/lottie_light.min.js"></script>
 <script src="src/lib.js"></script>
-<script src="src/effects.js"></script>
+<script src="src/effects/core.js"></script>
+<script src="src/effects/off.js"></script>
+<script src="src/effects/grid.js"></script>
+<script src="src/effects/trace.js"></script>
+<script src="src/effects/diya.js"></script>
+<script src="src/effects/anar.js"></script>
+<script src="src/effects/fireworks.js"></script>
+<script src="src/effects/shower.js"></script>
+<script src="src/effects/pulse.js"></script>
+<script src="src/effects/pumpkin.js"></script>
+<script src="src/effects/ghosts.js"></script>
+<script src="src/effects/bats.js"></script>
+<script src="src/effects/eyes.js"></script>
+<script src="src/effects/snow.js"></script>
+<script src="src/effects/tree.js"></script>
+<script src="src/effects/lights.js"></script>
 <script src="src/app.js"></script>
 </body>
 </html>

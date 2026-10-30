@@ -17,11 +17,13 @@ like MadMapper or Resolume Arena when all you need is a few warped zones on a wa
 ## Features
 
 - **Corner-pin mapping:** drag each zone's four corners onto a surface; it warps to fit.
-- **Built-in effects**, drawn live: `diya` (oil lamp), `anar` (fountain firework), `fireworks`,
-  `shower` (falling glitter), `trace` (neon light running round the edges), `pulse` (colour wash),
-  `grid` (for lining things up).
-- **Your own content** per zone: a video file, a [Lottie](https://lottiefiles.com) `.json`
-  animation, or a YouTube link.
+- **Built-in effects**, drawn live:
+  - Diwali: `diya` (oil lamp), `anar` (fountain firework), `fireworks`, `shower` (falling glitter)
+  - Halloween: `pumpkin` (flickering jack-o'-lantern), `ghosts`, `bats`, `eyes` (blinking in the dark)
+  - Christmas: `snow`, `tree` (twinkling baubles and a star), `lights` (fairy lights)
+  - Any time: `trace` (neon light running round the edges), `pulse` (colour wash), `grid` (for lining things up)
+- **Your own content** per zone: a video, GIF or image file, a [Lottie](https://lottiefiles.com)
+  `.json` animation, or a link to a YouTube video, a video file or a GIF.
 - **Add, duplicate, copy/paste and delete zones** as you go.
 - **Remembers everything** in the browser, and **exports / imports** a whole setup as a file to
   back it up or share it.
@@ -52,7 +54,7 @@ Chrome or Edge recommended. On a Mac, the first time you may need to right-click
 2. Press **Shift+Space** for edit mode. Drag the middle of a zone to move it, drag a corner circle
    onto the matching corner of the real surface. Watch the wall, not the laptop.
 3. Press **Shift+Space** again to leave edit mode. Positions are saved.
-4. Press **P** to pick each zone's effect, colour, or video / Lottie / YouTube link.
+4. Press **P** to pick each zone's effect, colour, or a video, GIF, Lottie or YouTube clip.
 
 Anything **black** is invisible on the wall (black is "no light"), so glowing content on a black
 background looks like it's painted onto the surface. [CONTENT.md](CONTENT.md) lists free
@@ -84,8 +86,8 @@ Diwali and Halloween animations and videos that project well.
 
 ## Good to know
 
-- Video and Lottie files have to be picked again after a reload (browsers don't let pages reopen
-  files on their own). YouTube links are remembered.
+- Video, GIF and Lottie files have to be picked again after a reload (browsers don't let pages
+  reopen files on their own). Links (YouTube, or a direct `.mp4` / `.gif` address) are remembered.
 - YouTube clips play muted and on a loop. Some videos block embedding and won't play.
 - Settings are stored per address: `file://…/index.html` and `http://localhost:8765` keep separate
   setups. Use **Export setup** / **Import setup** to move one across.
@@ -93,7 +95,7 @@ Diwali and Halloween animations and videos that project well.
 
 ## Adding your own effect
 
-Effects are plain functions in [`src/effects.js`](src/effects.js). Add one and it shows up in the panel's
+Effects are plain functions, one file each in [`src/effects/`](src/effects/). Add one and it shows up in the panel's
 dropdown. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits and licence
