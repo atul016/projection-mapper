@@ -13,12 +13,57 @@ html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font: 
   background-image: linear-gradient(#fff 2px, transparent 2px), linear-gradient(90deg, #fff 2px, transparent 2px);
   background-size: 10vw 10vh; }
 
-/* above maptastic's edit overlay (z-index 1000000) */
-#panel, #help { position: fixed; z-index: 2000000; background: #111d; border: 1px solid #444; border-radius: 8px; padding: 12px; }
+/* above maptastic's edit overlay (z-index 1000000) and the zone buttons (2000000) */
+#panel, #help { position: fixed; z-index: 2000001; background: #111d; border: 1px solid #444; border-radius: 8px; padding: 12px; }
 #panel { top: 12px; left: 12px; display: none; max-height: calc(100vh - 48px); overflow: auto; }
 #panel table { border-collapse: collapse; }
 #panel td { padding: 3px 6px; }
 #panel select, #panel input, #panel button { font: inherit; }
 #panel .actions { margin-top: 8px; display: flex; gap: 8px; }
 #help { bottom: 12px; left: 12px; line-height: 1.6; }
+/* × in the top-right corner of the panel and the help box */
+.close { position: absolute; top: 4px; right: 6px; background: none; border: 0; color: #aaa; font-size: 20px; line-height: 1; cursor: pointer; }
+.close:hover { color: #fff; }
+#help { padding-right: 32px; max-width: calc(100vw - 280px); } /* room for the dock beside it */
+
+/* edit mode: buttons under each zone's label, placed over the page (not inside the warped zone) by app.js */
+.zone-tools { position: fixed; z-index: 2000000; display: none; gap: 2px; transform: translateX(-50%);
+  background: #111d; border: 1px solid #555; border-radius: 6px; padding: 2px; }
+.zone-tools button { background: none; border: 0; color: #ddd; font-size: 15px; width: 26px; height: 24px; border-radius: 4px; cursor: pointer; }
+.zone-tools button:hover { background: #333; color: #fff; }
+.zone-tools .on { color: #555; }
+.zone-tools select, .zone-tools input { font: inherit; font-size: 13px; }
+.zone-tools input[type=color] { width: 28px; height: 24px; padding: 0 2px; border: 0; background: none; cursor: pointer; }
+.zone-tools .sep { width: 1px; margin: 3px 2px; background: #555; }
+/* 📎: file and link inputs, opened under the bar */
+.zone-tools .media { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; display: flex; gap: 6px;
+  align-items: center; white-space: nowrap; padding: 6px; background: #111e; border: 1px solid #555; border-radius: 6px; }
+.zone-tools .media[hidden] { display: none; }
+.zone-tools .media button { width: auto; padding: 0 8px; background: #333; }
+
+/* in-page message box (delete confirmation, link problems) */
+#ask { background: #181818; color: #ddd; border: 1px solid #555; border-radius: 10px; padding: 18px 20px; max-width: 420px; font: inherit; }
+#ask::backdrop { background: #0008; }
+#ask p { margin: 0 0 16px; line-height: 1.5; }
+#ask .buttons { display: flex; justify-content: flex-end; gap: 8px; }
+#ask button { font: inherit; padding: 5px 14px; border-radius: 6px; border: 1px solid #555; background: #2a2a2a; color: #ddd; cursor: pointer; }
+#ask button[value=ok] { background: #2a4a7a; border-color: #2a4a7a; color: #fff; }
+
+/* mouse controls: a dock in the bottom-right corner and a right-click menu, both above everything else */
+#dock { position: fixed; right: 12px; bottom: 12px; z-index: 2000002; display: flex; gap: 2px; padding: 3px;
+  background: #111d; border: 1px solid #444; border-radius: 8px; transition: opacity .4s; }
+#dock button { background: none; border: 0; color: #ddd; font-size: 18px; width: 34px; height: 32px; border-radius: 6px; cursor: pointer; }
+#dock button:hover { background: #333; color: #fff; }
+#dock button.on { background: #2a4a7a; color: #fff; }
+#menu { position: fixed; z-index: 2000003; display: none; min-width: 200px; padding: 4px;
+  background: #181818f2; border: 1px solid #444; border-radius: 8px; box-shadow: 0 6px 24px #000a; }
+#menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 6px 8px; background: none; border: 0;
+  color: #ddd; font: inherit; text-align: left; border-radius: 5px; cursor: pointer; }
+#menu button:hover { background: #2a4a7a; color: #fff; }
+#menu span { width: 18px; text-align: center; }
+#menu kbd { margin-left: auto; color: #999; }
+/* when the mouse has been still for a few seconds: no dock and no cursor on the wall */
+body.idle #dock { opacity: 0; pointer-events: none; }
+body.idle, body.idle * { cursor: none !important; }
+
 kbd { background: #333; border-radius: 3px; padding: 0 4px; }

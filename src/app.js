@@ -50,18 +50,69 @@ function addZone({ id, effect = 'grid', color = '#ffffff', url, off, points, sou
   if (sourcePoints) { z.layer.sourcePoints = sourcePoints.map(p => p.slice()); map.updateTransform(); }
   el.style.zIndex = map.layers.length; // new zones go on top
   addRow(z);
+  addTools(z);
   if (url) playLink(z, url);
+  syncControls(z);
   if (off) setOff(z, true);
   save();
   return z;
 }
 
-function removeZone(z) {
-  if (!confirm(`Delete zone ${num(z)}?`)) return;
+async function removeZone(z) {
+  if (!await ask(`Delete zone ${num(z)}?`, 'Delete')) return;
   unload(z);
   map.removeLayer(z.el);
-  z.el.remove(); z.row.remove();
+  z.el.remove(); z.row.remove(); z.tools.remove();
   save();
+}
+
+// turn a zone a quarter turn clockwise about its centre (what maptastic's R key does)
+function rotateZone(z) {
+  const p = z.layer.targetPoints, cx = p.reduce((a, q) => a + q[0], 0) / 4, cy = p.reduce((a, q) => a + q[1], 0) / 4;
+  for (const q of p) [q[0], q[1]] = [cx - (q[1] - cy), cy + (q[0] - cx)];
+  map.updateTransform();
+  save();
+}
+
+// edit mode: a bar under the selected zone's label with its settings (as in the panel) and the same actions as the keys
+function addTools(z) {
+  z.tools = document.createElement('div');
+  z.tools.className = 'zone-tools';
+  z.tools.dataset.zone = z.el.id;
+  z.tools.innerHTML = `<select data-f="effect" title="Effect">${effectOptions()}</select><input data-f="color" type="color" title="Colour">
+    <button data-act="media" title="Video, GIF, image, Lottie or a link">📎</button><span class="sep"></span>
+    <button data-act="rotate" title="Rotate 90° (R)">⟳</button><button data-act="off" title="Switch off / on (X)">◐</button>
+    <button data-act="dup" title="Duplicate (⌘/Ctrl+C, V)">⧉</button><button data-act="up" title="Bring forward (])">▲</button>
+    <button data-act="down" title="Send back ([)">▼</button><button data-act="del" title="Delete (Delete)">✕</button>
+    <div class="media" hidden>${mediaInputs}</div>`;
+  bindControls(z, z.tools);
+  z.tools.onclick = e => {
+    switch (e.target.dataset.act) {
+      case 'media': { const m = z.tools.querySelector('.media'); m.hidden = !m.hidden; break; }
+      case 'rotate': rotateZone(z); break;
+      case 'off': setOff(z, !z.off); save(); break;
+      case 'dup': duplicate(zoneSpec(z)); break;
+      case 'up': restack(z, 1); break;
+      case 'down': restack(z, -1); break;
+      case 'del': removeZone(z); break;
+    }
+    map.draw();
+  };
+  keepMouse(z.tools);
+  document.body.appendChild(z.tools);
+}
+
+// in edit mode, keep the selected zone's bar under its label (maptastic draws the label at the zone's centre)
+function placeTools() {
+  for (const z of zones()) {
+    const show = map.configActive && z.layer.visible && map.selectedLayer === z.layer;
+    z.tools.style.display = show ? 'flex' : 'none';
+    if (!show) continue;
+    const p = z.layer.targetPoints;
+    z.tools.style.left = p.reduce((a, q) => a + q[0], 0) / 4 + 'px';
+    z.tools.style.top = p.reduce((a, q) => a + q[1], 0) / 4 + 14 + 'px';
+    z.tools.querySelector('[data-act=off]').classList.toggle('on', !!z.off); // dimmed while the zone is off
+  }
 }
 
 // move a zone one step up (dir 1) or down (-1) in the stack, so overlapping zones show the right one on top.
@@ -114,7 +165,6 @@ function playLink(z, url) {
   url = url.trim();
   const kind = linkKind(url);
   if (!kind) return false;
-  z.row.querySelector('input[type=url]').value = url;
   unload(z);
   z.url = url;
   // YouTube refuses pages opened as files: keep the link (so it isn't lost on the next save) but show the effect
@@ -159,50 +209,88 @@ setInterval(() => {
   }
 }, 4000);
 
+// ---------- zone settings, shared by the panel row and the zone's edit-mode bar ----------
+// Both have the same controls, marked with data-f; a change in one is copied to the other by syncControls.
+const LINK_HELP = 'That isn\'t a link to a YouTube video or straight to a video or image file (ending in .mp4, .webm, .gif, .png, .jpg...). For a GIF on GIPHY or Tenor, right-click it and copy the image address.';
+const FILE_PAGE_HELP = 'YouTube won\'t play when this page is opened as a file. Open it with the start script in this folder (start-mac.command, start-windows.bat or start.sh) instead.';
+const effectOptions = () => Object.keys(EFFECTS).map(e => `<option>${e}</option>`).join('');
+const mediaInputs = `<input data-f="file" type="file" accept="video/*,image/*,.json"> <input data-f="link" type="url" placeholder="or paste a YouTube, video or GIF link" size="28"> <button data-f="clear">clear</button>`;
+
+function bindControls(z, root) {
+  const $ = f => root.querySelector(`[data-f=${f}]`);
+  $('effect').onchange = e => setEffect(z, e.target.value);
+  $('color').oninput = e => { z.color = e.target.value; syncControls(z); };
+  $('color').onchange = save;
+  $('link').onchange = e => useLink(z, e.target.value);
+  $('file').onchange = e => e.target.files[0] && loadFile(z, e.target.files[0]);
+  $('clear').onclick = () => clearMedia(z);
+}
+// values go in as properties, not HTML, because they may come from an imported file
+function syncControls(z) {
+  for (const root of [z.row, z.tools]) {
+    root.querySelector('[data-f=effect]').value = z.effect;
+    root.querySelector('[data-f=color]').value = z.color;
+    root.querySelector('[data-f=link]').value = z.url || '';
+  }
+}
+// a new effect starts from a fresh canvas: setting its width clears it and resets every drawing setting
+function setEffect(z, name) { z.effect = name; z.state = { p: [] }; z.ctx.canvas.width = 800; syncControls(z); save(); }
+function useLink(z, value) {
+  if (!value.trim()) return;
+  const played = playLink(z, value);
+  syncControls(z); save();
+  if (!played) notify(LINK_HELP);
+  else if (played === 'file') notify(FILE_PAGE_HELP);
+}
+async function loadFile(z, f) {
+  unload(z); syncControls(z); save();
+  if (f.name.toLowerCase().endsWith('.json')) {
+    try {
+      z.anim = lottie.loadAnimation({ container: z.lottieEl, renderer: 'svg', loop: true, autoplay: true, animationData: JSON.parse(await f.text()) });
+    } catch (e) { return notify('Not a valid Lottie animation: ' + f.name); }
+    setMode(z, 'lottie');
+  } else showMedia(z, f.type.startsWith('image/') ? 'image' : 'video', URL.createObjectURL(f)); // GIF, PNG, JPG, WebP or a video
+}
+function clearMedia(z) {
+  unload(z); setMode(z, 'effect');
+  for (const input of document.querySelectorAll(`[data-zone=${z.el.id}] [data-f=file]`)) input.value = '';
+  syncControls(z); save();
+}
+
 // ---------- panel ----------
 function addRow(z) {
-  const tr = document.createElement('tr');
+  const tr = z.row = document.createElement('tr');
+  tr.dataset.zone = z.el.id;
   tr.innerHTML = `<td></td>
-    <td><select>${Object.keys(EFFECTS).map(e => `<option>${e}</option>`).join('')}</select></td>
-    <td><input type="color"></td>
-    <td><input type="file" accept="video/*,image/*,.json"> <input type="url" placeholder="or paste a YouTube, video or GIF link" size="28"> <button>clear</button></td>
-    <td><button title="Duplicate">⧉</button> <button title="Delete">✕</button></td>`;
-  z.row = tr;
-  const [sel, color, file, link] = tr.querySelectorAll('select, input');
-  const [clearBtn, dupBtn, delBtn] = tr.querySelectorAll('button');
-  // values go in as properties, not HTML, because they may come from an imported file
+    <td><select data-f="effect">${effectOptions()}</select></td>
+    <td><input data-f="color" type="color"></td>
+    <td>${mediaInputs}</td>
+    <td><button data-act="dup" title="Duplicate">⧉</button> <button data-act="del" title="Delete">✕</button></td>`;
   tr.cells[0].textContent = num(z);
-  sel.value = z.effect;
-  color.value = z.color;
-
-  // a new effect starts from a fresh canvas: setting its width clears it and resets every drawing setting
-  sel.onchange = () => { z.effect = sel.value; z.state = { p: [] }; z.ctx.canvas.width = 800; save(); };
-  color.oninput = () => { z.color = color.value; };
-  color.onchange = save;
-  link.onchange = () => {
-    if (!link.value.trim()) return;
-    const played = playLink(z, link.value);
-    if (!played) return alert('That isn\'t a link to a YouTube video or straight to a video or image file (ending in .mp4, .webm, .gif, .png, .jpg...). For a GIF on GIPHY or Tenor, right-click it and copy the image address.');
-    if (played === 'file') return alert('YouTube won\'t play when this page is opened as a file. Open it with the start script in this folder (start-mac.command, start-windows.bat or start.sh) instead.');
-    file.value = '';
-    save();
-  };
-  file.onchange = async () => {
-    const f = file.files[0];
-    if (!f) return;
-    unload(z); link.value = ''; save();
-    if (f.name.toLowerCase().endsWith('.json')) {
-      try {
-        z.anim = lottie.loadAnimation({ container: z.lottieEl, renderer: 'svg', loop: true, autoplay: true, animationData: JSON.parse(await f.text()) });
-      } catch (e) { alert('Not a valid Lottie animation: ' + f.name); file.value = ''; return; }
-      setMode(z, 'lottie');
-    } else showMedia(z, f.type.startsWith('image/') ? 'image' : 'video', URL.createObjectURL(f)); // GIF, PNG, JPG, WebP or a video
-  };
-  clearBtn.onclick = () => { unload(z); file.value = ''; link.value = ''; setMode(z, 'effect'); save(); };
-  dupBtn.onclick = () => duplicate(zoneSpec(z));
-  delBtn.onclick = () => removeZone(z);
+  bindControls(z, tr);
+  tr.querySelector('[data-act=dup]').onclick = () => duplicate(zoneSpec(z));
+  tr.querySelector('[data-act=del]').onclick = () => removeZone(z);
   rows.appendChild(tr);
 }
+
+// ---------- in-page messages (instead of the browser's alert / confirm boxes) ----------
+const askBox = document.getElementById('ask');
+keepMouse(askBox);
+// resolves true for OK, false for Cancel or Esc
+function ask(text, ok = 'OK', cancel = 'Cancel') {
+  askBox.querySelector('p').textContent = text;
+  askBox.querySelector('[value=ok]').textContent = ok;
+  const cancelBtn = askBox.querySelector('[value=cancel]');
+  cancelBtn.textContent = cancel; cancelBtn.hidden = !cancel;
+  askBox.showModal();
+  return new Promise(resolve => {
+    const answer = value => { askBox.close(); resolve(value); };
+    askBox.querySelector('[value=ok]').onclick = () => answer(true);
+    cancelBtn.onclick = () => answer(false);
+    askBox.oncancel = e => { e.preventDefault(); answer(false); }; // Esc
+  });
+}
+const notify = text => ask(text, 'OK', null);
 
 // ---------- export / import a whole setup ----------
 function exportSetup() {
@@ -222,7 +310,7 @@ async function importSetup(f) {
     if (data.app !== 'projection-mapper' || !Array.isArray(data.zones)) throw new Error();
     localStorage.setItem(ZONES_KEY, JSON.stringify(cleanZones(mergeLayout(data.zones, data.layout), EFFECTS)));
     location.reload();
-  } catch (e) { alert('That file isn\'t a Projection Mapper setup.'); }
+  } catch (e) { notify('That file isn\'t a Projection Mapper setup.'); }
 }
 
 // ---------- startup ----------
@@ -243,26 +331,80 @@ const importInput = document.getElementById('import');
 importInput.onchange = () => importInput.files[0] && importSetup(importInput.files[0]);
 document.getElementById('import-btn').onclick = () => importInput.click();
 
-// maptastic listens on window and preventDefaults mouse events in edit mode, which blocks the panel's controls
-for (const ev of ['mousedown', 'mouseup', 'mousemove']) panel.addEventListener(ev, e => e.stopPropagation());
+const help = document.getElementById('help');
+panel.querySelector('.close').onclick = () => panel.style.display = 'none';
+help.querySelector('.close').onclick = () => help.style.display = 'none';
+// maptastic listens on window and preventDefaults mouse events in edit mode, which blocks clicks on our controls
+function keepMouse(el) { for (const ev of ['mousedown', 'mouseup', 'mousemove']) el.addEventListener(ev, e => e.stopPropagation()); }
+keepMouse(panel); keepMouse(help);
+
+// ---------- mouse: corner dock and right-click menu ----------
+// Both offer the same actions as the keys. Nothing shows on the wall until the mouse is used: the dock
+// and the cursor appear when the mouse moves and hide again after a few seconds of stillness.
+const grid = document.getElementById('grid');
+const toggle = el => el.style.display = getComputedStyle(el).display === 'none' ? 'block' : 'none';
+const ACTIONS = {
+  edit: { icon: '✎', label: 'Edit mode', key: 'Shift+Space', run: () => { panel.style.display = 'none'; map.setConfigEnabled(!map.configActive); } },
+  // a new zone is selected in edit mode, so its bar is there to pick an effect
+  add: { icon: '＋', label: 'Add zone', key: 'N in edit mode', run: () => {
+    if (!map.configActive) ACTIONS.edit.run();
+    map.selectedLayer = addZone().layer; map.selectedPoint = null; map.draw();
+  } },
+  panel: { icon: '☰', label: 'Zones panel', key: 'P', run: () => toggle(panel) },
+  help: { icon: '?', label: 'Help', key: 'H', run: () => toggle(help) },
+  grid: { icon: '▦', label: 'Alignment grid', key: 'G', run: () => toggle(grid) },
+  fullscreen: { icon: '⛶', label: 'Fullscreen', key: 'F', run: () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen() },
+};
+const dock = document.getElementById('dock'), menu = document.getElementById('menu');
+for (const [name, a] of Object.entries(ACTIONS)) {
+  dock.insertAdjacentHTML('beforeend', `<button data-act="${name}" title="${a.label} (${a.key})">${a.icon}</button>`);
+  menu.insertAdjacentHTML('beforeend', `<button data-act="${name}"><span>${a.icon}</span>${a.label}<kbd>${a.key}</kbd></button>`);
+}
+const closeMenu = () => menu.style.display = 'none';
+for (const el of [dock, menu]) {
+  keepMouse(el);
+  el.onclick = e => { const act = e.target.closest('[data-act]')?.dataset.act; if (act) { closeMenu(); ACTIONS[act].run(); } };
+}
+addEventListener('contextmenu', e => {
+  if (e.target.closest('#panel')) return; // keep the normal menu for the panel's text boxes
+  e.preventDefault();
+  menu.style.display = 'block';
+  menu.style.left = Math.min(e.clientX, innerWidth - menu.offsetWidth - 4) + 'px';
+  menu.style.top = Math.min(e.clientY, innerHeight - menu.offsetHeight - 4) + 'px';
+});
+addEventListener('mousedown', e => { if (!menu.contains(e.target)) closeMenu(); }, true);
+
+let idleTimer;
+function wake() {
+  document.body.classList.remove('idle');
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(() => {
+    if (dock.matches(':hover') || menu.style.display === 'block') return wake();
+    document.body.classList.add('idle');
+  }, 3000);
+}
+addEventListener('mousemove', wake, true);
+addEventListener('mousedown', wake, true);
+wake();
 
 // ---------- keyboard ----------
 // maptastic handles its own edit-mode keys (Shift+Space, arrows, Alt+arrows, r, h, v, s, b, c);
 // these are the page's. Typing in the panel's inputs never triggers them.
 let gridAngle = 0, copied = null;
-const toggle = el => el.style.display = getComputedStyle(el).display === 'none' ? 'block' : 'none';
 addEventListener('keydown', e => {
+  if (askBox.open) return; // the message box handles its own keys (Enter, Esc)
   if (e.code === 'Space' && e.shiftKey) { panel.style.display = 'none'; return; } // entering / leaving edit mode
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
   const k = e.key.toLowerCase();
-  if (k === 'p') return toggle(panel);
+  if (k === 'escape') closeMenu();
+  if (k === 'p') return ACTIONS.panel.run();
   if (map.configActive) return editKey(e, k);
   switch (k) {
-    case 'g': toggle(document.getElementById('grid')); break;
+    case 'g': ACTIONS.grid.run(); break;
     // r rotates the grid 15°, Shift+R 1° for fine tuning
-    case 'r': document.getElementById('grid').style.rotate = `${gridAngle = (gridAngle + (e.shiftKey ? 1 : 15)) % 360}deg`; break;
-    case 'h': toggle(document.getElementById('help')); break;
-    case 'f': document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); break;
+    case 'r': grid.style.rotate = `${gridAngle = (gridAngle + (e.shiftKey ? 1 : 15)) % 360}deg`; break;
+    case 'h': ACTIONS.help.run(); break;
+    case 'f': ACTIONS.fullscreen.run(); break;
   }
 });
 
@@ -273,7 +415,7 @@ function editKey(e, k) {
     if (k === 'v' && copied) { e.preventDefault(); duplicate(copied.spec, 30 * ++copied.pastes); }
     return;
   }
-  if (k === 'n') return addZone();
+  if (k === 'n') return ACTIONS.add.run();
   if (!z) return;
   switch (k) {
     case 'x': setOff(z, !z.off); save(); break;
@@ -291,5 +433,7 @@ function editKey(e, k) {
     EFFECTS[z.effect](z.ctx, 800, 600, t, z.state, z.color, num(z));
     z.ctx.restore();
   }
+  placeTools();
+  dock.querySelector('[data-act=edit]').classList.toggle('on', map.configActive);
   requestAnimationFrame(frame);
 })(0);

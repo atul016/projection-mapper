@@ -11,6 +11,7 @@
 <div id="grid"></div>
 
 <div id="panel">
+  <button class="close" title="Close (P)">×</button>
   <table>
     <thead><tr><td>Zone</td><td>Effect</td><td>Colour</td><td>Video, GIF / image or Lottie .json file, or a YouTube / video / GIF link (overrides effect)</td><td></td></tr></thead>
     <tbody id="rows"></tbody>
@@ -22,13 +23,20 @@
   </div>
 </div>
 
+<dialog id="ask"><p></p><div class="buttons"><button value="cancel">Cancel</button><button value="ok" autofocus>OK</button></div></dialog>
+<div id="dock"></div>
+<div id="menu"></div>
+
 <div id="help">
+  <button class="close" title="Close (H)">×</button>
   <b>Projection Mapper</b><br>
   <kbd>Shift</kbd>+<kbd>Space</kbd> edit mode: drag a zone, or its corners, onto a surface<br>
   &nbsp;&nbsp;in edit mode: <kbd>Shift</kbd>+drag = fine, <kbd>Alt</kbd>+drag = rotate/scale, <kbd>R</kbd> rotate 90°, <kbd>]</kbd> / <kbd>[</kbd> bring forward / send back, <kbd>s</kbd> solo zone, <kbd>x</kbd> switch zone off/on<br>
+  &nbsp;&nbsp;or click a zone for its bar: effect, colour, 📎 video / GIF / link, ⟳ rotate 90°, ◐ off/on, ⧉ duplicate, ▲ / ▼ forward / back, ✕ delete<br>
   &nbsp;&nbsp;<kbd>N</kbd> new zone, <kbd>⌘/Ctrl</kbd>+<kbd>C</kbd> / <kbd>V</kbd> copy / paste selected zone, <kbd>Delete</kbd> remove selected zone<br>
   <kbd>P</kbd> panel: effect, colour, video / GIF / Lottie / YouTube per zone, export / import setup<br>
   <kbd>G</kbd> full-screen alignment grid (<kbd>R</kbd> / <kbd>Shift</kbd>+<kbd>R</kbd> rotate it) &nbsp; <kbd>F</kbd> fullscreen &nbsp; <kbd>H</kbd> hide this help<br>
+  With the mouse: move it for the buttons in the bottom-right corner, or right-click anywhere.<br>
   Everything is remembered in this browser except chosen files (links are remembered).
 </div>
 

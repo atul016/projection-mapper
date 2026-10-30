@@ -68,7 +68,7 @@ Diwali and Halloween animations and videos that project well.
 | Key | What it does |
 |---|---|
 | **Shift+Space** | Edit mode on / off |
-| **P** | Panel: effect, colour, video / Lottie / YouTube per zone, add zone, export / import setup |
+| **P** | Panel: effect, colour, video / GIF / Lottie / YouTube per zone, add zone, export / import setup |
 | **G** | Full-screen alignment grid |
 | **R** / **Shift+R** | Rotate the grid 15° / 1° |
 | **F** | Fullscreen |
@@ -85,7 +85,16 @@ Diwali and Halloween animations and videos that project well.
 | **X** | Switch the selected zone off / on |
 | **Delete** | Delete the selected zone |
 | **S** | Solo the selected zone (hide the others); press again to undo |
-| **R**, **H**, **V** | Rotate 90°, flip horizontally, flip vertically |
+
+**With the mouse:**
+
+- Move it and a row of buttons appears in the bottom-right corner: edit mode, **＋** add zone, zones
+  panel, help, alignment grid, fullscreen. Right-click anywhere for the same list. Both, and the cursor,
+  hide again after a few seconds so nothing stays on the wall.
+- In edit mode, click a zone and a bar appears under its label with everything the panel has for it:
+  effect, colour and **📎** (a video, GIF, image or Lottie file, or a link), plus **⟳** rotate 90°,
+  **◐** switch off / on, **⧉** duplicate, **▲** / **▼** bring forward / send back, **✕** delete.
+- Close the panel or the help box with its **×**.
 
 ## Good to know
 
