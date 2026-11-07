@@ -10,8 +10,9 @@ step and no dependencies to install. Please keep it that way, so anyone can down
 |---|---|
 | `index.html` | Page markup: the panel and the help box |
 | `src/app.js` | Zones, the panel, keyboard shortcuts, export / import, the render loop |
+| `src/shapes.js` | Tracing a zone's shape on the wall (the **T** / ✂ tool) |
 | `src/effects/` | The built-in effects, one file each, plus `core.js` with the shared helpers. **Most contributions go here.** |
-| `src/lib.js` | Small pure helpers (link parsing for YouTube and direct video / image links, checking saved zones), covered by tests |
+| `src/lib.js` | Small pure helpers (link parsing for YouTube and direct video / image links, checking saved zones, shape maths), covered by tests |
 | `src/style.css` | Styles |
 | `vendor/` | Bundled third-party libraries (maptastic, lottie-web). maptastic carries a few small patches, listed at the top of the file; add any new one to that list |
 | `CONTENT.md` | Free animations and videos that project well |
@@ -37,6 +38,9 @@ EFFECTS.ring = (c, w, h, t, s, col) => {
   `particles(c, s, gravity)` helper moves and draws anything you push onto `s.p`; see `anar`
   and `fireworks`.
 - Use `fade(c, w, h, 0.2)` instead of `clear` to leave trails.
+- If the zone has a traced shape, the 8th argument `shape` holds its outlines in canvas pixels
+  (`[[[x, y], ...], ...]`). The zone is already cut to it, so most effects can ignore it; `trace` and
+  `grid` use it to draw along the edge.
 - Draw bright things on black. Black is "no light" on a projector.
 - Reset anything you change on the context (`shadowBlur`, `globalAlpha`, `globalCompositeOperation`).
 - Keep it fast: several zones run at 60 fps at once.

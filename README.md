@@ -20,6 +20,8 @@ like MadMapper or Resolume Arena when all you need is a few warped zones on a wa
 ## Features
 
 - **Corner-pin mapping:** drag each zone's four corners onto a surface; it warps to fit.
+- **Traced shapes:** trace any outline on the wall (a flower, an arched window, a mirror) and the zone
+  is cut to it. Freehand or point by point, several pieces per zone, and holes. `trace` runs round the outline.
 - **Built-in effects**, drawn live:
   - Diwali: `diya` (oil lamp), `anar` (fountain firework), `fireworks`, `shower` (falling glitter)
   - Halloween: `pumpkin` (flickering jack-o'-lantern), `ghosts`, `bats`, `eyes` (blinking in the dark)
@@ -56,8 +58,12 @@ Chrome or Edge recommended. On a Mac, the first time you may need to right-click
    looks straight. Press **G** again to hide it.
 2. Press **Shift+Space** for edit mode. Drag the middle of a zone to move it, drag a corner circle
    onto the matching corner of the real surface. Watch the wall, not the laptop.
-3. Press **Shift+Space** again to leave edit mode. Positions are saved.
-4. Press **P** to pick each zone's effect, colour, or a video, GIF, Lottie or YouTube clip.
+3. Not a rectangle? Click the zone and press **T** (or **✂** in its bar) and trace the shape on the
+   wall: drag round it, or click point by point, and close it by clicking the first point. Draw a
+   second outline inside the first to cut a hole. **◯ Oval** starts from an oval you can adjust;
+   drag any blue point to move it. **Enter** keeps the shape, **Esc** cancels.
+4. Press **Shift+Space** again to leave edit mode. Positions are saved.
+5. Press **P** to pick each zone's effect, colour, or a video, GIF, Lottie or YouTube clip.
 
 Anything **black** is invisible on the wall (black is "no light"), so glowing content on a black
 background looks like it's painted onto the surface. [CONTENT.md](CONTENT.md) lists free
@@ -83,6 +89,7 @@ Diwali and Halloween animations and videos that project well.
 | **N** | New zone |
 | **⌘/Ctrl+C**, **⌘/Ctrl+V** | Copy the selected zone, paste copies of it |
 | **X** | Switch the selected zone off / on |
+| **T** | Trace a shape for the selected zone (**Enter** done, **Backspace** undo, **Esc** cancel) |
 | **Delete** | Delete the selected zone |
 | **S** | Solo the selected zone (hide the others); press again to undo |
 
@@ -92,7 +99,7 @@ Diwali and Halloween animations and videos that project well.
   panel, help, alignment grid, fullscreen. Right-click anywhere for the same list. Both, and the cursor,
   hide again after a few seconds so nothing stays on the wall.
 - In edit mode, click a zone and a bar appears under its label with everything the panel has for it:
-  effect, colour and **📎** (a video, GIF, image or Lottie file, or a link), plus **⟳** rotate 90°,
+  effect, colour and **📎** (a video, GIF, image or Lottie file, or a link), **✂** trace a shape, plus **⟳** rotate 90°,
   **◐** switch off / on, **⧉** duplicate, **▲** / **▼** bring forward / send back, **✕** delete.
 - Close the panel or the help box with its **×**.
 

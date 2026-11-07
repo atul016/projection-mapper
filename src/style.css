@@ -35,11 +35,23 @@ html, body { margin: 0; height: 100%; background: #000; overflow: hidden; font: 
 .zone-tools select, .zone-tools input { font: inherit; font-size: 13px; }
 .zone-tools input[type=color] { width: 28px; height: 24px; padding: 0 2px; border: 0; background: none; cursor: pointer; }
 .zone-tools .sep { width: 1px; margin: 3px 2px; background: #555; }
+/* ✂ is lit while the zone has a traced shape */
+.zone-tools .lit { color: #40e0ff; }
 /* 📎: file and link inputs, opened under the bar */
 .zone-tools .media { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; display: flex; gap: 6px;
   align-items: center; white-space: nowrap; padding: 6px; background: #111e; border: 1px solid #555; border-radius: 6px; }
 .zone-tools .media[hidden] { display: none; }
 .zone-tools .media button { width: auto; padding: 0 8px; background: #333; }
+
+/* tracing a zone's shape (shapes.js): a full-screen canvas for drawing, above maptastic's overlay, and its bar */
+#trace { position: fixed; inset: 0; z-index: 1999999; display: none; cursor: crosshair; }
+#trace-bar { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 2000000; display: none;
+  max-width: min(720px, calc(100vw - 48px)); background: #111e; border: 1px solid #555; border-radius: 8px; padding: 10px 12px; line-height: 1.5; }
+#trace-bar .buttons { display: flex; gap: 6px; margin-top: 8px; }
+#trace-bar button { font: inherit; padding: 3px 10px; border-radius: 5px; border: 1px solid #555; background: #2a2a2a; color: #ddd; cursor: pointer; }
+#trace-bar button:hover { background: #333; color: #fff; }
+#trace-bar button[data-act=done] { background: #2a4a7a; border-color: #2a4a7a; color: #fff; }
+#trace-bar .sep { flex: 1; }
 
 /* in-page message box (delete confirmation, link problems) */
 #ask { background: #181818; color: #ddd; border: 1px solid #555; border-radius: 10px; padding: 18px 20px; max-width: 420px; font: inherit; }
